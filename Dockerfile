@@ -12,7 +12,7 @@ RUN apt-get -qq update && apt-get -qq -y --no-install-recommends install \
     unzip \
     libfreetype6-dev \
     libjpeg62-turbo-dev \
-    libmcrypt-dev \
+#    libmcrypt-dev \
     libpng-dev \
     libjpeg-dev \
     libmemcached-dev \
@@ -21,16 +21,16 @@ RUN apt-get -qq update && apt-get -qq -y --no-install-recommends install \
     libmagickwand-dev
 
 # Install the PHP extensions we need
-RUN docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg
 RUN docker-php-ext-install -j$(nproc) iconv pdo pdo_mysql mysqli gd
-RUN pecl install mcrypt-1.0.2 && docker-php-ext-enable mcrypt && pecl install imagick && docker-php-ext-enable imagick 
+RUN pecl install imagick && docker-php-ext-enable imagick 
 
 # Add the Omeka-S PHP code
-COPY ./omeka-s-1.4.0.zip /var/www/
-RUN unzip -q /var/www/omeka-s-1.4.0.zip -d /var/www/ \
-&&  rm /var/www/omeka-s-1.4.0.zip \
+COPY ./omeka-s-develop.zip /var/www/
+RUN unzip -q /var/www/omeka-s-develop -d /var/www/ \
+&&  rm /var/www/omeka-s-develop.zip \
 &&  rm -rf /var/www/html/ \
-&&  mv /var/www/omeka-s/ /var/www/html/
+&&  mv /var/www/omeka-s-develop/ /var/www/html/
 
 COPY ./imagemagick-policy.xml /etc/ImageMagick/policy.xml
 COPY ./.htaccess /var/www/html/.htaccess
@@ -51,8 +51,7 @@ RUN unzip -q /var/www/html/themes/centerrow-v1.4.0.zip -d /var/www/html/themes/ 
 # Create one volume for files and config
 RUN mkdir -p /var/www/html/volume/config/ && mkdir -p /var/www/html/volume/files/
 COPY ./database.ini /var/www/html/volume/config/
-RUN rm /var/www/html/config/database.ini \
-&& ln -s /var/www/html/volume/config/database.ini /var/www/html/config/database.ini \
+RUN ln -s /var/www/html/volume/config/database.ini /var/www/html/config/database.ini \
 && rm -Rf /var/www/html/files/ \
 && ln -s /var/www/html/volume/files/ /var/www/html/files \
 && chown -R www-data:www-data /var/www/html/ \

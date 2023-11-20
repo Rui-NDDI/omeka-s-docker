@@ -27,6 +27,9 @@ services:
       - mariadb:db
 
   omeka:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
     depends_on:
       - mariadb
     image: dodeeric/omeka-s:latest 
